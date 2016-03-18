@@ -102,23 +102,36 @@ function saveCorpus()
 	file:close();
 end
 
-function getMarkovChain()
+function getMarkovChain(generatedChain)
 	local phrase = corpusIndex[math.random(1, #corpusIndex)];
-	local generatedChain = phrase;
+	if not generatedChain then
+		generatedChain = phrase;
+	else
+		local _ = split(generatedChain);
+		if #_ >= 2 then
+			phrase = _[#_ - 1] .. " " .. _[#_];
+		else
+			generatedChain = phrase;
+		end
+	end
 
-	if corpus[phrase][1] ~= nil then
-		while corpus[phrase] ~= nil and string.len(generatedChain) < 144 do
-			local nextWord = corpus[phrase][math.random(1, #corpus[phrase])];
+	if corpus[phrase] ~= nil then
+		if corpus[phrase][1] ~= nil then
+			while corpus[phrase] ~= nil and string.len(generatedChain) < 144 do
+				local nextWord = corpus[phrase][math.random(1, #corpus[phrase])];
 
-			if nextWord ~= nil then
-				generatedChain = generatedChain .. " " .. nextWord;
+				if nextWord ~= nil then
+					generatedChain = generatedChain .. " " .. nextWord;
 
-				local tempSplit = split(phrase);
-				phrase = tempSplit[2] .. " " .. nextWord;
-			else
-				break;
+					local tempSplit = split(phrase);
+					phrase = tempSplit[2] .. " " .. nextWord;
+				else
+					break;
+				end
 			end
 		end
+	else
+		generatedChain = "I haven't learned enough to know what to say here. :(";
 	end
 
 	return generatedChain;

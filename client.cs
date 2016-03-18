@@ -1,6 +1,7 @@
 //luaExec("./markov.lua");
 //temp
 luaExec("Add-Ons/Client_LuaStuff/markov.lua");
+luaExec("Add-Ons/Client_LuaStuff/whatami.lua");
 
 function addToMarkovCorpus(%phrase, %word) {
 	//echo("added" SPC %word SPC "to" SPC %phrase);
@@ -14,7 +15,7 @@ package LuaStuffPackage {
 	function clientCmdChatMessage(%a,%b,%c,%fmsg,%cp,%name,%cs,%msg,%color) {
 		%firstChar = stripChars(getSubStr(%msg, 0, 1), "!@#$%^&()_-+=[]{}\\|';:,./<>?");
 
-		if(%firstChar $= "" || getWordCount(%msg) < 2) {
+		if(%firstChar $= "") {
 			if(getWord(%msg, 0) $= ">>markov") {
 				switch($Pref::Client::Markov::AllowChat) {
 					case 0:
@@ -26,7 +27,19 @@ package LuaStuffPackage {
 						}
 				}
 
-				commandToServer('messageSent', "++" SPC luaCall("getMarkovChain"));
+				commandToServer('messageSent', "++" SPC luaCall("getMarkovChain", getWords(%msg, 1, getWordCount(%msg))));
+			} else if(getWord(%msg, 0) $= ">>whatami") {
+				switch($Pref::Client::Markov::AllowChat) {
+					case 0:
+						return parent::clientCmdChatMessage(%a,%b,%c,%fmsg,%cp,%name,%cs,%msg,%color);
+
+					case 1:
+						if(stripMLControlChars(%name) !$= $pref::Player::NetName) {
+							return parent::clientCmdChatMessage(%a,%b,%c,%fmsg,%cp,%name,%cs,%msg,%color);
+						}
+				}
+
+				commandToServer('messageSent', "++" SPC luaCall("whatAmI", %name));
 			} else {
 				return parent::clientCmdChatMessage(%a,%b,%c,%fmsg,%cp,%name,%cs,%msg,%color);
 			}
